@@ -23,7 +23,7 @@ pipeline {
                 script {
                     // Fetch the list of branches from the GitHub API
                     def githubApiUrl = "https://api.github.com/repos/jishnuk25/multibranch_pipeline/branches"
-                    def githubApiAuth = "Authorization: token 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" //github PAT
+                    def githubApiAuth = "Authorization: token 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" //github PAT
                     def response = sh(returnStdout: true, script: "curl -sH '${githubApiAuth}' '${githubApiUrl}'")
                     def branchesJson = readJSON(text: response)
 
