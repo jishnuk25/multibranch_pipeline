@@ -1,0 +1,76 @@
+pipeline {
+    agent any
+
+    environment {
+        RELEASE_BRANCH = 'release-${env.BUILD_NUMBER}'
+    }
+
+    stages {
+        // stage('Build') {
+        //     steps {
+        //         sh 'npm install' // or any other build command
+        //     }
+        // }
+
+        // stage('Test') {
+        //     steps {
+        //         sh 'npm test' // or any other test command
+        //     }
+        // }
+
+        stage('Fetch feature branches') {
+            steps {
+                // Fetch the list of branches from the GitHub API
+                def githubApiUrl = "https://api.github.com/repos/jishnuk25/multibranch_pipeline/branches"
+                def githubApiAuth = "Authorization: token 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" //github PAT
+                def response = sh(returnStdout: true, script: "curl -sH '${githubApiAuth}' '${githubApiUrl}'")
+                def branchesJson = readJSON(text: response)
+
+                // Extract the names of the feature branches from the list
+                def featureBranches = []
+                for (branch in branchesJson) {
+                    if (branch.name.startsWith('feature-')) {
+                        featureBranches.add(branch.name)
+                    }
+                }
+
+                // Sort the feature branches alphabetically
+                featureBranches.sort()
+
+                // Create a dropdown parameter for the user to select from
+                parameters {
+                    choice(
+                        name: 'FEATURE_BRANCHES',
+                        choices: featureBranches.join('\n'),
+                        description: 'Select the feature branches to merge into the release branch'
+                    )
+                }
+            }
+        }
+
+        // stage('Merge feature branches') {
+        //     steps {
+        //         // Split the FEATURE_BRANCHES parameter into a list
+        //         def featureBranches = params.FEATURE_BRANCHES.split('\n')
+
+        //         // Create a new release branch with a dynamic name
+        //         sh "git checkout -b ${env.RELEASE_BRANCH}"
+                
+        //         // Merge the feature branches into the release branch
+        //         for (branch in featureBranches) {
+        //             sh "git merge --no-ff ${branch}"
+        //         }
+                
+        //         // Push the release branch to the remote repository
+        //         sh "git push origin ${env.RELEASE_BRANCH}"
+        //     }
+        // }
+
+        // stage('Deploy') {
+        //     steps {
+        //         // Deploy the release branch to the production environment
+        //         sh "ansible-playbook deploy.yml -i production --extra-vars 'release=${env.RELEASE_BRANCH}'"
+        //     }
+        // }
+    }
+}
